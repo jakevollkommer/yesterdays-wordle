@@ -1,0 +1,27 @@
+name: Post Yesterday's Wordle
+
+on:
+  # Run daily at 12:00 AM PST (8:00 AM UTC)
+  schedule:
+    - cron: '0 8 * * *'
+  
+  # Allow manual trigger for testing
+  workflow_dispatch:
+
+jobs:
+  post-wordle:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Send Yesterday's Wordle to Discord
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: node send-wordle.js
