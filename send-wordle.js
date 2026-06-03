@@ -85,6 +85,16 @@ async function fetchExampleSentence(word) {
 }
 
 /**
+ * Bold every occurrence of the word (and inflected forms, e.g. plurals)
+ * within a sentence, case-insensitively.
+ */
+function boldWord(sentence, word) {
+  const escaped = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const re = new RegExp(`\\b${escaped}\\w*`, 'gi');
+  return sentence.replace(re, (match) => `**${match}**`);
+}
+
+/**
  * Send message to Discord webhook
  */
 async function sendToDiscord(wordleData) {
@@ -122,7 +132,7 @@ async function sendToDiscord(wordleData) {
         },
         ...(exampleSentence ? [{
           name: "Used in a sentence",
-          value: `_"${exampleSentence}"_`,
+          value: `_"${boldWord(exampleSentence, solution)}"_`,
           inline: false
         }] : [])
       ],
