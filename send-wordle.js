@@ -52,10 +52,45 @@ async function fetchWordle(date) {
 }
 
 /**
+ * Fetch an example sentence using the word from the free Dictionary API.
+ * Returns a sentence string, or null if none is available.
+ */
+async function fetchExampleSentence(word) {
+  try {
+    const url = `https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word)}`;
+    const response = await fetch(url);
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const entries = await response.json();
+
+    // Walk the nested structure looking for the first definition with an example.
+    for (const entry of entries) {
+      for (const meaning of entry.meanings || []) {
+        for (const def of meaning.definitions || []) {
+          if (def.example) {
+            return def.example;
+          }
+        }
+      }
+    }
+
+    return null;
+  } catch {
+    // Dictionary API is best-effort; never block the Discord post.
+    return null;
+  }
+}
+
+/**
  * Send message to Discord webhook
  */
 async function sendToDiscord(wordleData) {
   const { solution, print_date, days_since_launch, id } = wordleData;
+
+  const exampleSentence = await fetchExampleSentence(solution);
   
   const roasts = [
     "The spoiler-free zone is officially over. Let the roasting begin.",
@@ -84,7 +119,12 @@ async function sendToDiscord(wordleData) {
           name: "Date",
           value: formatDate(print_date),
           inline: true
-        }
+        },
+        ...(exampleSentence ? [{
+          name: "Used in a sentence",
+          value: `_"${exampleSentence}"_`,
+          inline: false
+        }] : [])
       ],
       footer: {
         text: "Shit-talking may now commence"
