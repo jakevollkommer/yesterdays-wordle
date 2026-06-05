@@ -91,6 +91,7 @@ async function fetchExampleSentence(word) {
 async function generateExampleSentence(word) {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
+    console.log('[sentence] No ANTHROPIC_API_KEY set; using dictionary fallback.');
     return null;
   }
 
@@ -113,14 +114,20 @@ async function generateExampleSentence(word) {
     });
 
     if (!response.ok) {
+      const body = await response.text();
+      console.log(`[sentence] Claude API ${response.status}: ${body}`);
       return null;
     }
 
     const data = await response.json();
     const text = data.content?.find((b) => b.type === 'text')?.text?.trim();
+    if (text) {
+      console.log('[sentence] Using Claude-generated sentence.');
+    }
     return text || null;
-  } catch {
+  } catch (err) {
     // Best-effort; never block the Discord post.
+    console.log(`[sentence] Claude request failed: ${err.message}`);
     return null;
   }
 }
