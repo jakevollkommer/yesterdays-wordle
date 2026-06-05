@@ -24,4 +24,5 @@ jobs:
       - name: Send Yesterday's Wordle to Discord
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: node send-wordle.js

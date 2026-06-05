@@ -85,6 +85,55 @@ async function fetchExampleSentence(word) {
 }
 
 /**
+ * Generate a natural example sentence with the Claude API.
+ * Returns a sentence string, or null if no API key is set or the call fails.
+ */
+async function generateExampleSentence(word) {
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  if (!apiKey) {
+    return null;
+  }
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'claude-opus-4-8',
+        max_tokens: 100,
+        messages: [{
+          role: 'user',
+          content: `Write one natural, everyday example sentence (under 20 words) that uses the word "${word}" in its most common, ordinary meaning. Reply with ONLY the sentence — no quotes, no preamble, no explanation.`,
+        }],
+      }),
+    });
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const data = await response.json();
+    const text = data.content?.find((b) => b.type === 'text')?.text?.trim();
+    return text || null;
+  } catch {
+    // Best-effort; never block the Discord post.
+    return null;
+  }
+}
+
+/**
+ * Get an example sentence for the word, preferring a Claude-generated one and
+ * falling back to the free Dictionary API. Returns null if neither is available.
+ */
+async function getExampleSentence(word) {
+  return (await generateExampleSentence(word)) || (await fetchExampleSentence(word));
+}
+
+/**
  * Bold every occurrence of the word (and inflected forms, e.g. plurals)
  * within a sentence, case-insensitively.
  */
@@ -100,7 +149,7 @@ function boldWord(sentence, word) {
 async function sendToDiscord(wordleData) {
   const { solution, print_date, days_since_launch, id } = wordleData;
 
-  const exampleSentence = await fetchExampleSentence(solution);
+  const exampleSentence = await getExampleSentence(solution);
   
   const roasts = [
     "The spoiler-free zone is officially over. Let the roasting begin.",

@@ -28,11 +28,26 @@ A zero-shot vibe-coded Discord webhook bot that posts yesterday's Wordle answer 
 5. Value: Paste your Discord webhook URL
 6. Click **Add secret**
 
-### 3. Enable GitHub Actions
+### 3. (Optional) Add an Anthropic API Key for Better Example Sentences
+
+The bot includes the word used in a sentence. By default it pulls examples from
+the free Dictionary API, which are often weak or use uncommon meanings. If you
+add an Anthropic API key, the bot instead generates a natural, everyday sentence
+with Claude (and falls back to the dictionary if the key is missing or the call
+fails).
+
+1. Get an API key from the [Anthropic Console](https://console.anthropic.com/)
+2. In your GitHub repo, go to **Settings** > **Secrets and variables** > **Actions**
+3. Click **New repository secret**
+4. Name: `ANTHROPIC_API_KEY`
+5. Value: Paste your API key
+6. Click **Add secret**
+
+### 4. Enable GitHub Actions
 
 The workflow is already set up in `.github/workflows/daily-wordle.yml`. It will automatically run every day at 12:00 AM PST.
 
-### 4. Test It (Optional)
+### 5. Test It (Optional)
 
 To test immediately without waiting for the schedule:
 
@@ -57,6 +72,9 @@ The bot posts a nice embed that looks like:
 ```bash
 # Set your webhook URL
 export DISCORD_WEBHOOK_URL="https://discord.com/api/webhooks/..."
+
+# Optional: enable Claude-generated example sentences
+export ANTHROPIC_API_KEY="sk-ant-..."
 
 # Run the script
 node send-wordle.js
